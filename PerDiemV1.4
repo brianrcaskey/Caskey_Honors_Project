@@ -1,0 +1,98 @@
+Sub sumBills()
+
+         Dim WS_Count As Integer
+         Dim I As Integer
+         Dim numTwenty As Integer
+         Dim numTen As Integer
+         Dim numFive As Integer
+         Dim numOnes As Integer
+         Dim LastRow As Integer
+         
+         
+         
+         ActiveWorkbook.Worksheets("SplashPage").Range("D11:H20").ClearContents
+         ' Set WS_Count equal to the number of worksheets in the active
+         ' workbook.
+         WS_Count = ActiveWorkbook.Worksheets.Count
+         
+         ' Begin the loop.
+         For I = 2 To WS_Count
+         
+            If Worksheets(I).Name = "SplashPage" Then GoTo incorrectSheetOrder
+         
+            LastRow = Worksheets(I).Cells(Rows.Count, "A").End(xlUp).Row
+            ActiveWorkbook.Worksheets("SplashPage").Range("D" & 9 + I).Value = ActiveWorkbook.Worksheets(I).Name
+            ActiveWorkbook.Worksheets("SplashPage").Range("E" & 9 + I).Value = ActiveWorkbook.Worksheets(I).Range("L" & LastRow).Value
+            ActiveWorkbook.Worksheets("SplashPage").Range("F" & 9 + I).Value = ActiveWorkbook.Worksheets(I).Range("M" & LastRow).Value
+            ActiveWorkbook.Worksheets("SplashPage").Range("G" & 9 + I).Value = ActiveWorkbook.Worksheets(I).Range("N" & LastRow).Value
+            ActiveWorkbook.Worksheets("SplashPage").Range("H" & 9 + I).Value = ActiveWorkbook.Worksheets(I).Range("O" & LastRow).Value
+            
+         Next I
+Exit Sub
+
+incorrectSheetOrder:
+MsgBox ("Error! The sheet titled SplashPage must be the first sheet in the workbook")
+
+
+End Sub
+
+
+Sub refreshCategories()
+
+        Dim WS_Count As Integer
+         Dim I As Integer
+         Dim numTwenty As Integer
+         Dim numTen As Integer
+         Dim numFive As Integer
+         Dim numOnes As Integer
+         Dim LastRow As Integer
+         
+         
+         
+         ActiveWorkbook.Worksheets("SplashPage").Range("D11:H20").ClearContents
+         ' Set WS_Count equal to the number of worksheets in the active
+         ' workbook.
+         WS_Count = ActiveWorkbook.Worksheets.Count
+        
+         ' Begin the loop.
+         For I = 2 To WS_Count
+         
+            If Worksheets(I).Name = "SplashPage" Then GoTo incorrectSheetOrder
+
+            LastRow = Worksheets(I).Cells(Rows.Count, "A").End(xlUp).Row
+            Debug.Print LastRow
+            
+            For j = 2 To LastRow
+                If Worksheets(I).Range("D" & j) = "A" Then
+                    For m = 5 To 10
+                    Worksheets(I).Cells(j, m).Value = Worksheets("SplashPage").Cells(13, m + 8).Value
+                    Next m
+                ElseIf Worksheets(I).Range("D" & j) = "B" Then
+                    For m = 5 To 10
+                    Worksheets(I).Cells(j, m).Value = Worksheets("SplashPage").Cells(14, m + 8).Value
+                    Next m
+                ElseIf Worksheets(I).Range("D" & j) = "C" Then
+                    For m = 5 To 10
+                    Worksheets(I).Cells(j, m).Value = Worksheets("SplashPage").Cells(15, m + 8).Value
+                    Next m
+                ElseIf Worksheets(I).Range("D" & j) = "D" Then
+                    For m = 5 To 10
+                    Worksheets(I).Cells(j, m).Value = Worksheets("SplashPage").Cells(16, m + 8).Value
+                    Next m
+                ElseIf Worksheets(I).Range("D" & j) = "E" Then
+                    For m = 5 To 10
+                    Worksheets(I).Cells(j, m).Value = Worksheets("SplashPage").Cells(17, m + 8).Value
+                    Next m
+                End If
+                
+                
+            Next j
+            
+         Next I
+
+Exit Sub
+
+incorrectSheetOrder:
+MsgBox ("Error! The sheet titled SplashPage must be the first sheet in the workbook")
+
+End Sub

@@ -1,0 +1,563 @@
+  
+    Public entryRow As Integer
+    Public dateCol As Integer
+    Public netIdRow As Integer
+    Public statusRow As Integer
+    Public commentRow As Integer
+    
+
+Sub workbook_open()
+
+    ActiveWorkbook.Sheets(1).Range("A1:J1").Locked = True
+    
+End Sub
+Sub ProgramRun()
+    
+    'ActiveWorkbook.Sheets(1).Range("A1:J1").Locked = True
+    Dim i As Integer
+    Dim j As Integer
+    Dim entryRowCheck, dateColCheck, netIDRowCheck, statusRowCheck, commentRowCheck As Boolean
+    Dim errStr As Variant
+    entryRowCheck = False
+    dateColCheck = False
+    netIDRowCheck = False
+    statusRowCheck = False
+    commentRowCheck = False
+    
+    '==============================================================================
+    'Loop through columns to find entrynum, date, netID, status, and comment column
+    '==============================================================================
+        For j = 1 To 10
+        
+            If ActiveWorkbook.Sheets(1).Cells(1, j).Text = "Entry #" Then
+                entryRow = j
+                entryRowCheck = True
+            ElseIf ActiveWorkbook.Sheets(1).Cells(1, j).Text = "Entry Date" Then
+                dateCol = j
+                dateColCheck = True
+            ElseIf ActiveWorkbook.Sheets(1).Cells(1, j).Text = "Entry netID" Then
+                netIdRow = j
+                netIDRowCheck = True
+            ElseIf ActiveWorkbook.Sheets(1).Cells(1, j).Text = "Status" Then
+                statusRow = j
+                statusRowCheck = True
+            ElseIf ActiveWorkbook.Sheets(1).Cells(1, j).Text = "Comments" Then
+                commentRow = j
+                commentRowCheck = True
+            End If
+        Next j
+        
+    'if an input format check is missing, the program will not run
+    If Not entryRowCheck Then
+        errStr = "Entry #"
+        GoTo inputErr
+    ElseIf Not dateColCheck Then
+        errStr = "Entry Date"
+        GoTo inputErr
+    ElseIf Not netIDRowCheck Then
+        errStr = "netID"
+        GoTo inputErr
+    ElseIf Not statusRowCheck Then
+        errStr = "Arriving/leaving/absent"
+        GoTo inputErr
+    ElseIf Not commentRowCheck Then
+        errStr = "Comments"
+        GoTo inputErr
+    End If
+    
+    
+    
+    
+    '---------easter egg------------------------------
+    Dim rand As Integer
+    rand = Int((10 - 1 + 1) * Rnd + 1)
+    If rand = 5 Then MsgBox ("you're doing great <3")
+    '-------------------------------------------------
+    
+    
+
+    Dim numOfWks As Integer
+    Dim WS_Count As Integer
+    WS_Count = ActiveWorkbook.Worksheets.Count
+    numOfWks = WS_Count - 2
+    
+
+    
+    '===========================================
+    '==== CLEAR IRRELEVANT DATA ================
+    '===========================================
+    
+    
+    
+        'On Error GoTo clearErr
+        Sheets(3).Range("A3:E1000").Clear
+        Sheets(3).Range("F5:Z1000").Clear
+        Sheets(3).Range("I2:M2").ClearContents
+
+    
+    
+    '===========================================
+    '====DEFINE WORKSPACE LOCATIONS ============
+    '===========================================
+  
+    Dim lastRow As Integer
+    Dim wkInfo As Range
+    Dim ws As Worksheet
+    Dim regRehStartLoc As Range
+    Dim regRehEndLoc As Range
+    Dim regRehStart As Date
+    Dim regRehEnd As Date
+    
+    
+    lastRow = Sheet1.Range("A" & Rows.Count).End(xlUp).row 'find last row in column A
+    Set wkInfo = Sheet1.Range("M2")
+    Set regRehStartLoc = Sheet1.Range("O3")
+    Set regRehEndLoc = Sheet1.Range("O5")
+    
+    
+    '=================================================================
+    '==== FILL WORKSHEETS WITH STUDENT LIST FROM ALLOWANCE SHEET =====
+    '=================================================================
+    
+    Dim lastNameRow As Integer
+    lastNameRow = Sheet2.Range("A" & Rows.Count).End(xlUp).row   'find last row in column A of netID sheet
+    
+    'Cycle through worksheets
+    
+        Set ws = ActiveWorkbook.Worksheets("Week")
+    
+        'Cycle through netID's of allowance sheet
+        For i = 2 To lastNameRow + 1
+            ws.Range("F" & i + 3).Value = Sheet2.Range("A" & i) 'first name
+            ws.Range("G" & i + 3).Value = Sheet2.Range("B" & i) 'last name
+            ws.Range("H" & i + 3).Value = Sheet2.Range("C" & i) 'netID
+            ws.Range("I5:M" & lastNameRow + 3) = 0
+        Next i
+            
+
+    
+ 
+    '============================================
+    '== INSERT DATES INTO WEEKDAYS ==============
+    '============================================
+    
+        Set ws = Worksheets(3) 'set worksheet to work in
+        
+        For j = 1 To 7
+          
+            ws.Cells(2, j + 8).Value = Worksheets(1).Cells(wkInfo.row, wkInfo.Column).Value + j - 1
+                
+        Next j
+ 
+
+    
+    
+    '=============================================
+    '=== READ INPUT DATA INTO APPROPRIATE WEEK ===
+    '=============================================
+    
+    Dim inputNumber As Integer
+    Dim inputDate As Date
+    Dim inputNetId As String
+    Dim inputStatus As String
+    Dim inputComment As String
+    Dim nextRow As Integer
+    Dim m As Integer
+    Dim placementCheck As Boolean
+    
+    'Cycle through each form input
+    For i = 2 To lastRow
+        placementCheck = False ' set placement check equal to false at start of each netID
+        
+        Debug.Print commentRow
+        
+        With Worksheets("Data_and_Dates")
+            inputNumber = .Cells(i, 1).Value
+            inputDate = .Cells(i, dateCol).Value
+            inputNetId = .Cells(i, netIdRow).Value
+            inputStatus = .Cells(i, statusRow).Value
+            inputComment = .Cells(i, commentRow).Value
+        End With
+        
+        'Cycle through each worksheet and corresponding start date
+        
+            Set ws = ActiveWorkbook.Worksheets("Week")
+            
+            If inputDate >= Sheet1.Range("M2").Value And inputDate < Sheet1.Range("M2").Value + 7 Then
+                
+                placementCheck = True
+                 With ws
+                      nextRow = .Range("A" & Rows.Count).End(xlUp).row + 1
+                     .Cells(nextRow, 1).Value = inputNumber
+                     .Cells(nextRow, 2).Value = inputDate
+                     .Cells(nextRow, 3).Value = inputNetId
+                     .Cells(nextRow, 4).Value = inputStatus
+                     .Cells(nextRow, 5).Value = inputComment
+                     
+                 End With
+            
+            End If
+       
+    
+        'If placementCheck = False Then MsgBox ("Error: Entry number " & inputNumber & " does not fit into date range")
+        
+    Next i
+    
+    
+    
+    ' ===========================================
+    ' ========= LOOP THROUGH EACH ENTRY =========
+    ' ===========================================
+    Dim mm_tabl As Range
+    Dim currentInputNumber As Integer
+    Dim currentNetID As String
+    Dim currentDay As Date
+    Dim currentStatus As String
+    Dim lastNetID As Integer
+    Dim classStart As Date
+    Dim allowedMinutes As Integer
+    Dim missedMinutes As Integer
+    Dim ws_allowance As Worksheet
+    Dim dayOfWeek As Integer  '1=Mon, 2=Tues, 3=Wed, etc...
+    Dim rehearsalStart As Date
+    Dim regRehearsalStart As Date
+    Dim rehearsalEnd As Date
+    Dim regRehearsalEnd As Date
+    Dim rehTimeDiff As Integer
+    Dim commentPlaceHolder As String
+    Dim arrivalCheck As Boolean
+    Dim allowedArrivalTime As Date
+    Dim allowedDepartureTime As Date
+    Dim missingNetIDLoc As Variant
+    
+    Set ws_allowance = ActiveWorkbook.Worksheets(2)
+    Set ws_current = ActiveWorkbook.Worksheets(3)
+    lastNetID = ws_current.Range("C" & Rows.Count).End(xlUp).row
+    
+    For j = 3 To lastNetID
+    
+        currentInputNumber = ws_current.Range("A" & j).Value
+        currentDay = ws_current.Range("B" & j).Value
+        currentNetID = ws_current.Range("C" & j).Text
+        currentStatus = ws_current.Range("D" & j).Text
+        
+        'determine day of week
+        dayOfWeek = currentDay - Sheet1.Cells(wkInfo.row, wkInfo.Column)
+        
+        
+        
+        If currentStatus = "Arriving" Then GoTo Arriving
+        If currentStatus = "Leaving" Then GoTo Leaving
+        If currentStatus = "Absent" Then GoTo Absent
+               
+statusCheckEnd:
+    Next j 'to lastNetID for loop
+    
+    'call sumData function
+    sumData
+    
+    
+Exit Sub
+
+    
+'=============== LATE ARRIVAL ===============================
+Arriving:
+    
+    'set location in missed minutes table to reference
+    Set mm_tabl = Nothing
+    Set mm_tabl = ws_current.Range("H3:H400").Find(currentNetID)
+    Debug.Print mm_tabl
+    If mm_tabl Is Nothing Then GoTo missingNetID
+    
+    'create rehearsal start date value by combining date and time values
+    rehearsalStart = ws_current.Cells(3, dayOfWeek + 8).Value & ws_current.Cells(2, dayOfWeek + 8).Value
+
+    'combine current date and regular rehearsal start time
+    regRehearsalStart = Sheet1.Cells(regRehStartLoc.row, regRehStartLoc.Column).Value & ws_current.Cells(2, dayOfWeek + 8).Value
+
+    'check amount of allowed minutes from allowancesheet
+    allowedMinutes = ws_allowance.Cells(ws_allowance.Range("C1:C500").Find(currentNetID).row, ws_allowance.Range("C1:C500").Find(currentNetID).Column + (2 * dayOfWeek) - 1)
+        
+    If regRehearsalStart = rehearsalStart Then
+    'if rehearsal start is normal, then business as usual
+        allowedArrivalTime = DateAdd("n", allowedMinutes, regRehearsalStart)
+        
+    Else
+    'if rehearsal start does not match regular rehearsal start, then
+        rehTimeDiff = DateDiff("n", regRehearsalStart, rehearsalStart)
+
+        If rehTimeDiff >= allowedMinutes Then
+            allowedArrivalTime = rehearsalStart
+        Else
+            allowedArrivalTime = DateAdd("n", allowedMinutes, regRehearsalStart)
+        End If
+        
+        
+    End If
+    
+    'compute missed minutes by taking difference between arrival time and allowed arrival time
+    missedMinutes = DateDiff("n", currentDay, allowedArrivalTime)
+    If missedMinutes > 0 Then missedMinutes = 0
+    'Debug.Print (currentNetID & " is allowed to arrive at " & allowedArrivalTime & " and arrived at " & currentDay)
+    'Debug.Print (missedMinutes)
+    
+    ' ----------- PRINT TO CELLS (ARRIVING) ------------------------
+                    
+    ' check if there is already an entry for the cell
+    With ws_current.Cells(mm_tabl.row, mm_tabl.Column + dayOfWeek)
+                     
+        If Not .Comment Is Nothing Then
+            If .Comment.Text <> "" Then
+                commentPlaceHolder = .Comment.Text & vbNewLine & vbNewLine
+                .Comment.Delete
+            End If
+        Else
+            commentPlaceHolder = ""
+        End If
+    End With
+                    
+    'Set cell color if nonzero value
+    On Error Resume Next
+    ws_current.Cells(mm_tabl.row, mm_tabl.Column + dayOfWeek).Value = missedMinutes + ws_current.Cells(mm_tabl.row, mm_tabl.Column + dayOfWeek).Value
+    'Print comment to cell if there is any input from form
+    If allowedMinutes > 0 Then ws_current.Cells(mm_tabl.row, mm_tabl.Column + dayOfWeek).AddComment (commentPlaceHolder & "Entry #" & currentInputNumber & " (late arrival)" & vbNewLine & "Arrival: " & currentDay & vbNewLine & "Allowed:    " & allowedArrivalTime & " [" & allowedMinutes & " mins]" & vbNewLine & "Missed minutes = " & (-1 * missedMinutes))
+    If allowedMinutes = 0 Then ws_current.Cells(mm_tabl.row, mm_tabl.Column + dayOfWeek).AddComment (commentPlaceHolder & "Entry #" & currentInputNumber & " (late arrival)" & vbNewLine & "Arrival: " & currentDay & vbNewLine & "Allowed:    " & allowedArrivalTime & " [" & allowedMinutes & " mins]" & vbNewLine & "Missed minutes = " & (-1 * missedMinutes))
+    ws_current.Cells(mm_tabl.row, mm_tabl.Column + dayOfWeek).Comment.Shape.TextFrame.AutoSize = True
+    If missedMinutes <> 0 Then ws_current.Cells(mm_tabl.row, mm_tabl.Column + dayOfWeek).Interior.ColorIndex = 36
+
+    GoTo statusCheckEnd
+    
+
+
+
+'===================== EARLY DEPARTURE ============================================
+Leaving:
+    
+    'set location in missed minutes table to reference
+    Set mm_tabl = Nothing
+    Set mm_tabl = ws_current.Range("H3:H400").Find(currentNetID)
+    Debug.Print mm_tabl
+    If mm_tabl Is Nothing Then GoTo missingNetID
+    
+    'create rehearsal end date value by combining date and time values
+    rehearsalEnd = ws_current.Cells(4, dayOfWeek + 8).Value & ws_current.Cells(2, dayOfWeek + 8).Value
+
+    'combine current date and regular rehearsal end time
+    regRehearsalEnd = Sheet1.Cells(regRehEndLoc.row, regRehEndLoc.Column).Value & ws_current.Cells(2, dayOfWeek + 8).Value
+    
+    'check amount of allowed minutes from allowancesheet
+    allowedMinutes = ws_allowance.Cells(ws_allowance.Range("C2:C500").Find(currentNetID).row, ws_allowance.Range("C2:C500").Find(currentNetID).Column + (2 * dayOfWeek))
+   
+    If regRehearsalEnd = rehearsalEnd Then
+    'if rehearsal start is normal, then business as usual
+        allowedDepartureTime = DateAdd("n", (-1) * allowedMinutes, regRehearsalEnd)
+        
+    Else
+    'if rehearsal start does not match regular rehearsal start, then
+        rehTimeDiff = DateDiff("n", regRehearsalEnd, rehearsalEnd)
+        'if rehTimeDiff is negative, rehearsal is ending early
+        'if rehTimeDiff is positive, rehearsal is ending late
+        
+        If ((-1) * rehTimeDiff) >= allowedMinutes Then
+            allowedDepartureTime = rehearsalEnd
+        ElseIf rehTimeDiff > 0 Then
+            allowedDepartureTime = rehearsalEnd
+        Else
+            allowedDepartureTime = DateAdd("n", allowedMinutes, regRehearsalEnd)
+        End If
+        
+    End If
+    
+    'compute missed minutes
+    missedMinutes = DateDiff("n", allowedDepartureTime, currentDay)
+    If missedMinutes > 0 Then missedMinutes = 0
+    
+    ' ----------- PRINT TO CELLS (DEPARTING) ------------------------
+                     
+    ' check if there is already an entry for the cell
+    With ws_current.Cells(mm_tabl.row, mm_tabl.Column + dayOfWeek)
+        If Not .Comment Is Nothing Then
+            If .Comment.Text <> "" Then
+                commentPlaceHolder = .Comment.Text & vbNewLine & vbNewLine
+                .Comment.Delete
+            End If
+        Else
+            commentPlaceHolder = ""
+        End If
+    End With
+                     
+                     
+    'Set cell to number of minutes missed
+    ws_current.Cells(mm_tabl.row, mm_tabl.Column + dayOfWeek).Value = missedMinutes + ws_current.Cells(mm_tabl.row, mm_tabl.Column + dayOfWeek).Value
+    'Set cell color if nonzero value
+    If missedMinutes <> 0 Then ws_current.Cells(mm_tabl.row, mm_tabl.Column + dayOfWeek).Interior.ColorIndex = 36
+    If allowedMinutes > 0 Then ws_current.Cells(mm_tabl.row, mm_tabl.Column + dayOfWeek).AddComment (commentPlaceHolder & "Entry #" & currentInputNumber & " (early departure)" & vbNewLine & "Departure: " & currentDay & vbNewLine & "Allowed:    " & allowedDepartureTime & " [" & allowedMinutes & " mins]" & vbNewLine & "Missed minutes = " & (-1 * missedMinutes))
+    If allowedMinutes = 0 Then ws_current.Cells(mm_tabl.row, mm_tabl.Column + dayOfWeek).AddComment (commentPlaceHolder & "Entry #" & currentInputNumber & " (early departure)" & vbNewLine & "Departure: " & currentDay & vbNewLine & "Allowed:    " & allowedDepartureTime & " [" & allowedMinutes & " mins]" & vbNewLine & "Missed minutes = " & (-1 * missedMinutes))
+    ws_current.Cells(mm_tabl.row, mm_tabl.Column + dayOfWeek).Comment.Shape.TextFrame.AutoSize = True
+                        
+    GoTo statusCheckEnd
+    
+'========== ABSENT ==========================================================
+Absent:
+
+'check all other entries for "Arriving" entry
+    Set mm_tabl = Nothing
+    Set mm_tabl = ws_current.Range("H3:H400").Find(currentNetID)
+    Debug.Print mm_tabl
+    If mm_tabl Is Nothing Then GoTo missingNetID
+    
+    
+    arrivalCheck = False
+    For k = 1 To lastNetID
+    
+        If Int(ws_current.Cells(k + 2, 2).Value) = Int(currentDay) And UCase(ws_current.Cells(k + 2, 3).Text) = UCase(currentNetID) And ws_current.Cells(k + 2, 4).Text = "Arriving" Then
+        'checks if days, netID's, and status = "arriving" ... if all three match, do nothing because this student was marked arriving to rehearsal
+        arrivalCheck = True
+
+        End If
+    
+    Next k
+    
+    
+    ' print minutes missed for missing full rehearsal if arrival check is false
+    If arrivalCheck = False Then
+        Set mm_tabl = ws_current.Range("H3:H400").Find(currentNetID)
+        allowedMinutes = ws_allowance.Cells(ws_allowance.Range("C2:C500").Find(currentNetID).row, ws_allowance.Range("C2:C500").Find(currentNetID).Column + (2 * dayOfWeek))
+        ws_current.Cells(mm_tabl.row, mm_tabl.Column + dayOfWeek).Value = -90
+        ws_current.Cells(mm_tabl.row, mm_tabl.Column + dayOfWeek).Interior.ColorIndex = 36
+        ws_current.Cells(mm_tabl.row, mm_tabl.Column + dayOfWeek).AddComment (currentNetID & " missed all minutes for the rehearsal due to an absence (entry #" & currentInputNumber & ") and no subsequent arrival check-in")
+    End If 'arrival check if
+
+    
+    GoTo statusCheckEnd
+    
+    
+    
+    
+clearErr:
+    MsgBox "Error with clearing data... check week worksheet"
+    Exit Sub
+    
+inputErr:
+    MsgBox ("ERROR: Input format is not defined" & vbNewLine & "Please check that " & errStr & " is defined")
+    Exit Sub
+
+missingNetID:
+'this handles if the program cannot match a netID in the inputs to a netID in the minutes table
+    For m = 1 To 5
+        ws_current.Cells(j, m).Interior.ColorIndex = 44
+    Next m
+    ws_current.Cells(j, 3).AddComment ("Could not match netID to netID in allowance table")
+    ws_current.Cells(j, 3).Comment.Shape.TextFrame.AutoSize = True
+    GoTo statusCheckEnd
+    
+End Sub
+
+
+Sub sumData()
+' this function will insert summation formula into each cell in row P
+
+    Dim i As Integer
+    lastNetID = ActiveWorkbook.Worksheets(3).Range("H" & Rows.Count).End(xlUp).row
+    
+    For i = 5 To lastNetID
+        ActiveWorkbook.Worksheets(3).Cells(i, 16).Formula = "=SUM(I" & i & ":O" & i & ")"
+        ActiveWorkbook.Worksheets(3).Cells(i, 16).Formula = "=SUM(I" & i & ":O" & i & ")"
+    Next i
+    
+    
+End Sub
+
+
+
+Sub exportToCsv()
+
+Dim myFile As String
+Dim rng As Range
+Dim c1 As Variant
+Dim c2 As Variant
+Dim c3 As Variant
+Dim i As Integer
+Dim j As Integer
+
+Dim message, title, default, myvalue
+message = "Enter filename for file"
+title = "CSV OUTPUT MENU"
+default = "myFile"
+
+myvalue = InputBox(message, title, default)
+
+myFile = Application.ActiveWorkbook.Path & "\" & myvalue & ".csv"
+lastNetID = ActiveWorkbook.Worksheets(3).Range("H" & Rows.Count).End(xlUp).row
+
+
+Set rng = Sheets(3).Range("F5:P" & lastNetID)
+Open myFile For Output As #1
+
+Write #1, "Name", "NetID", "Minutes Missed"
+
+For i = 1 To rng.Rows.Count
+    c1 = rng.Cells(i, 1) & " " & rng.Cells(i, 2)
+    c2 = rng.Cells(i, 3) & "@iastate.edu"
+    c3 = rng.Cells(i, 11)
+    Write #1, c1, c2, c3
+
+Next i
+
+Close #1
+
+End Sub
+
+
+
+
+Sub copyData()
+
+MsgBox ("Select the workbook with form data from the week" & vbNewLine & "IMPORTANT: The sheet the data is in MUST be named 'Form1'")
+
+On Error Resume Next
+Dim wb1 As Workbook, wb2 As Workbook
+Dim ws1 As Worksheet, ws2 As Worksheet
+Set wb1 = ThisWorkbook '<< source wb
+Set ws1 = wb1.Sheets(1)
+Dim N As Long, c As Long
+N = 5 '<<data from row 5 in target workbook / change as needed in both workbooks
+Dim v As Variant
+With Application.FileDialog(msoFileDialogFilePicker)
+.title = "select one file"
+.Filters.Add "Excel Files", "*.xls*"
+.AllowMultiSelect = False
+If .Show = True Then
+Application.ScreenUpdating = False
+For Each v In .SelectedItems
+Set wb2 = Workbooks.Open(v)
+Set ws2 = wb2.Worksheets("Form1")
+c = ws2.Cells(N, Columns.Count).End(xlToLeft).Column + 1
+Next
+End If
+End With
+
+wb2.Activate
+ws2.Select
+lastRow = ws2.Range("A" & Rows.Count).End(xlUp).row 'find last row in column A
+Range("A2:J" & lastRow).Copy
+
+wb1.Activate
+ws1.Select
+Cells(2, 1).Select
+ActiveSheet.Paste
+Application.CutCopyMode = False
+
+wb2.Close False
+
+
+End Sub
+
+Sub inputDataFormat()
+
+    UserForm1.Show
+    
+
+
+End Sub
+
